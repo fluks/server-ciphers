@@ -2,12 +2,91 @@
 
 # Test which ciphers a server supports.
 
-if [[ ${#@} -ne 2 ]]; then
-    echo usage: $(basename $0) host port >&2
-    exit 1
-fi
-host="$1"
-port="$2"
+function usage() {
+    echo "usage: $(basename $0) [OPTIONS].. host port
+
+    -c, --color     print in colors
+    -v, --verbose   print unsupported cipher too"
+}
+
+# Echo in colors.
+# First parameter is a string and second is a color name, if it is an empty
+# string, don't print in colors.
+function echo_color() {
+    local colors color s esc reset
+
+    s="$1"
+    # No colors.
+    if [[ -z $2 ]]; then
+        echo "$s"
+        return 0
+    fi
+
+    color="$2"
+
+    esc="\e["
+    reset="${esc}0m"
+    declare -A colors=(
+        [red]=31
+        [green]=32
+    )
+
+    echo -e "${esc}${colors[$color]}m${s}${reset}"
+
+    return 0
+}
+
+# Global variables.
+has_color=false
+has_verbose=false
+host=
+port=
+
+# Get options.
+# Parameters are all command line arguments.
+# Sets global variables host, port and maybe has_color and has_verbose.
+# Exits on invalid arguments.
+function options() {
+    local i arg
+
+    i=0
+    for arg in $@; do
+        case "$arg" in
+        -c|--color)
+            has_color=true
+            ;;
+        -v|--verbose)
+            has_verbose=true
+            ;;
+        ^--?)
+            echo invalid option >&2
+            usage
+            exit 1
+            ;;
+        *)
+            case "$i" in
+                0)
+                    host="$arg"
+                    ;;
+                1)
+                    port="$arg"
+                    ;;
+                *)
+                    echo invalid argument >&2
+                    usage
+                    exit 1
+                    ;;
+            esac
+            i=$((i+1))
+            ;;
+        esac
+    done
+
+    [[ -z $host ]] && echo host option missing >&2 && usage && exit 1
+    [[ -z $port ]] && echo port option missing >&2 && usage && exit 1
+}
+
+options $@
 
 openssl ciphers |\
 sed 's/:/\n/g'  |\
@@ -15,9 +94,11 @@ while read c; do
     yes Q |\
     openssl s_client -cipher "$c" -connect "$host:$port" -quiet &> /dev/null
     if [[ $? -eq 1 ]]; then
-        echo "no $c"
+        $has_color && color=red || color=
+        $has_verbose && echo_color "no $c" "$color"
     else
-        echo "$c is supported"
+        $has_color && color=green || color=
+        echo_color "$c is supported" "$color"
     fi
 done
 
