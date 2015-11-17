@@ -88,6 +88,10 @@ function options() {
 
 options $@
 
+# Test that something is listening, otherwise openssl hangs.
+netcat -zw1 "$host" "$port" &>/dev/null || \
+    { echo "Can't connect to $host $port" >&2 && exit 1; }
+
 openssl ciphers |\
 sed 's/:/\n/g'  |\
 while read c; do
