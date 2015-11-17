@@ -95,8 +95,8 @@ netcat -zw1 "$host" "$port" &>/dev/null || \
 openssl ciphers |\
 sed 's/:/\n/g'  |\
 while read c; do
-    yes Q |\
-    openssl s_client -cipher "$c" -connect "$host:$port" -quiet &> /dev/null
+    echo Q |\
+    openssl s_client -cipher "$c" -connect "$host:$port" &> /dev/null
     if [[ $? -eq 1 ]]; then
         $has_color && color=red || color=
         $has_verbose && echo_color "no $c" "$color"
