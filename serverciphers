@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Test which ciphers a server supports.
+
+if [[ ${#@} -ne 2 ]]; then
+    echo usage: $(basename $0) host port >&2
+    exit 1
+fi
+host="$1"
+port="$2"
+
+openssl ciphers |\
+sed 's/:/\n/g'  |\
+while read c; do
+    yes Q |\
+    openssl s_client -cipher "$c" -connect "$host:$port" -quiet &> /dev/null
+    if [[ $? -eq 1 ]]; then
+        echo "no $c"
+    else
+        echo "$c is supported"
+    fi
+done
+
+# vim: set filetype=bash
