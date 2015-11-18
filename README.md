@@ -1,7 +1,16 @@
 ## Description
 
-Test which ciphers a server supports.
+Test which TLS ciphers a server supports.
 
 ### Usage
 
-```./serverciphers www.google.com 443```
+```./serverciphers [OPTION]... www.google.com 443```
+
+Hostname must be passed before port number. Short options can't be grouped
+(eg. `-vc`).
+
+# Options
+```
+-c, --color     print in colors
+-v, --verbose   print unsupported ciphers too"
+```
