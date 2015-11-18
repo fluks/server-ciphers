@@ -12,5 +12,5 @@ Hostname must be passed before port number. Short options can't be grouped
 ## Options
 ```
 -c, --color     print in colors
--v, --verbose   print unsupported ciphers too"
+-v, --verbose   print unsupported ciphers too
 ```
